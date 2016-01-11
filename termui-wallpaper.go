@@ -132,9 +132,9 @@ func CreateScreens() []Screen {
 	// tag pane (right)
 	tag_l := ui.NewList()
 	tag_l.Height = SCREENHEIGHT - TITLEHEIGHT
-	tag_l.Width = 35
+	tag_l.Width = 36
 	tag_l.BorderLabel = "Tags"
-	tag_l.X = 45
+	tag_l.X = 44
 	tag_l.Y = 1
 	tags := &Pane{List: *tag_l, CurrentIndex: 1, HasFocus: false}
 	wallpapers.Panes = []Pane{*filenames, *tags}
@@ -150,7 +150,7 @@ func CreateScreens() []Screen {
 	// slideshow pane (left)
 	slideshow_l := ui.NewList()
 	slideshow_l.Height = SCREENHEIGHT - TITLEHEIGHT
-	slideshow_l.Width = 35
+	slideshow_l.Width = 36
 	slideshow_l.Y = 1
 	slideshow_l.X = 0
 	slideshow_l.BorderLabel = "Slideshows"
