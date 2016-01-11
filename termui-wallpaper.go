@@ -7,6 +7,13 @@ import (
 	"fmt"
 )
 
+type PaneType int
+
+const (
+	FILELIST PaneType = 0
+	TAGLIST PaneType = 1
+)
+
 type Pane struct {
 	List ui.List // termui struct
 	TotalItems []string // entire list of items
@@ -69,6 +76,12 @@ func main() {
 		Screens[active].Active = Screens[active].Active ^ 1
 		Screens[active].Panes[Screens[active].Active].HasFocus = true
 	})
+	ui.Handle("sys/kbd/<up>", func(ui.Event) {
+		// decrement Pane List selected index
+	})
+	ui.Handle("sys/kbd/<down>", func(ui.Event) {
+		// increment Pane List selected index
+	})
 	ui.Handle("sys/kbd/<tab>", func(ui.Event) {
 		// toggle active screen
 		// ^ is Go's xor operator. Works only on ints
@@ -76,18 +89,25 @@ func main() {
 	})
 	ui.Handle("sys/kbd", func(e ui.Event) {
 		// send event to active screen
+		// will likely encounter the same issue as #1
 	})
 	draw := func() {
 		Screens[active].Draw()
 	}
+	
 	// this is https://github.com/gizak/termui/issues/58
 	tick := time.Second/24
 	ui.Merge("timer/update", ui.NewTimerCh(tick))
 	ui.Handle("/timer/"+tick.String(), func(e ui.Event) {
+		// update pane lists (waiting on go-walldatabase)
 		// call draw
 		draw()
 	})
 	ui.Loop()
+}
+
+func HandleKeyboardEvent(e ui.Event) {
+	// Send event to active Screen -> Pane
 }
 
 func CreateScreens() []Screen {
