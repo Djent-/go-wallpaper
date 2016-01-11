@@ -19,6 +19,7 @@ type Pane struct {
 	TotalItems []string // entire list of items
 	CurrentIndex int // index of selected list item
 	HasFocus bool
+	Type PaneType
 }
 
 type Screen struct {
@@ -87,10 +88,7 @@ func main() {
 		// ^ is Go's xor operator. Works only on ints
 		active = active ^ 1
 	})
-	ui.Handle("sys/kbd", func(e ui.Event) {
-		// send event to active screen
-		// will likely encounter the same issue as #1
-	})
+	ui.Handle("sys/kbd", HandleKeyboardEvent)
 	draw := func() {
 		Screens[active].Draw()
 	}
@@ -128,7 +126,10 @@ func CreateScreens() []Screen {
 	filename_l.BorderLabel = "Wallpapers"
 	filename_l.X = 0
 	filename_l.Y = 1
-	filenames := &Pane{List: *filename_l, CurrentIndex: 1, HasFocus: true}
+	filenames := &Pane{List: *filename_l, 
+		CurrentIndex: 1, 
+		HasFocus: true,
+		Type: FILELIST}
 	// tag pane (right)
 	tag_l := ui.NewList()
 	tag_l.Height = SCREENHEIGHT - TITLEHEIGHT
@@ -136,7 +137,10 @@ func CreateScreens() []Screen {
 	tag_l.BorderLabel = "Tags"
 	tag_l.X = 44
 	tag_l.Y = 1
-	tags := &Pane{List: *tag_l, CurrentIndex: 1, HasFocus: false}
+	tags := &Pane{List: *tag_l, 
+		CurrentIndex: 1, 
+		HasFocus: false,
+		Type: TAGLIST}
 	wallpapers.Panes = []Pane{*filenames, *tags}
 	
 	// Slideshow screen
@@ -154,7 +158,10 @@ func CreateScreens() []Screen {
 	slideshow_l.Y = 1
 	slideshow_l.X = 0
 	slideshow_l.BorderLabel = "Slideshows"
-	slideshow_p := &Pane{List: *slideshow_l, CurrentIndex: 1, HasFocus: false}
+	slideshow_p := &Pane{List: *slideshow_l, 
+		CurrentIndex: 1, 
+		HasFocus: false,
+		Type: FILELIST}
 	// wallpaper pane (right)
 	wallpaper_l := ui.NewList()
 	wallpaper_l.Height = SCREENHEIGHT - TITLEHEIGHT
@@ -162,7 +169,10 @@ func CreateScreens() []Screen {
 	wallpaper_l.BorderLabel = "Wallpapers"
 	wallpaper_l.X = 35
 	wallpaper_l.Y = 1
-	wallpaper_p := &Pane{List: *wallpaper_l, CurrentIndex: 1, HasFocus: false}
+	wallpaper_p := &Pane{List: *wallpaper_l, 
+		CurrentIndex: 1, 
+		HasFocus: false,
+		Type: FILELIST}
 	slideshows.Panes = []Pane{*slideshow_p, *wallpaper_p}
 	
 	return []Screen{*wallpapers, *slideshows}
