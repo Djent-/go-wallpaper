@@ -28,14 +28,21 @@ func (s Screen) Draw() {
 	ui.Render(&s.Title, &s.Panes[0].List, &s.Panes[1].List)
 }
 
+/*
+To be removed with next commit. Making changes to the screens
+and stuff only seems to be permanent in the actual anonymous
+handler func - not any functions which are called from the
+anonymous handler func.
+*/
 func (s Screen) ToggleActivePane() {
 	s.Panes[s.Active].HasFocus = false
 	s.Panes[s.Active].List.BorderLabel = "Inactive" // debug
 	s.Active = s.Active ^ 1
 	s.Title.Text = "Test" // debug (does not work)
-	s.Title.Text = fmt.Sprint("%d", s.Active) // debug (does not work)
+	s.Title.Text = fmt.Sprintf("%d", s.Active) // debug (does not work)
 	s.Panes[s.Active].HasFocus = true
 	s.Panes[s.Active].List.BorderLabel = "Active" // debug
+	ui.Render(&s.Title, &s.Panes[0].List, &s.Panes[1].List)
 }
 
 func main() {
@@ -54,11 +61,15 @@ func main() {
 	})
 	ui.Handle("sys/kbd/<left>", func(ui.Event) {
 		// switch to left pane
-		Screens[active].ToggleActivePane()
+		Screens[active].Panes[Screens[active].Active].HasFocus = false
+		Screens[active].Active = Screens[active].Active ^ 1
+		Screens[active].Panes[Screens[active].Active].HasFocus = true
 	})
 	ui.Handle("sys/kbd/<right>", func(ui.Event) {
 		// switch to right pane
-		Screens[active].ToggleActivePane()
+		Screens[active].Panes[Screens[active].Active].HasFocus = false
+		Screens[active].Active = Screens[active].Active ^ 1
+		Screens[active].Panes[Screens[active].Active].HasFocus = true
 	})
 	ui.Handle("sys/kbd/<tab>", func(ui.Event) {
 		// toggle active screen
