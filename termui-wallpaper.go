@@ -4,7 +4,6 @@ import (
 	//wdb "github.com/djent-/go-walldatabase"
 	ui "github.com/gizak/termui"
 	"time"
-	//"strconv"
 	"fmt"
 )
 
@@ -24,7 +23,6 @@ type Screen struct {
 }
 
 func (s Screen) Draw() {
-	// s.Title.Text = time.Now().String() // debug (works)
 	ui.Render(&s.Title, &s.Panes[0].List, &s.Panes[1].List)
 }
 
@@ -122,11 +120,11 @@ func CreateScreens() []Screen {
 	wallpapers.Panes = []Pane{*filenames, *tags}
 	
 	// Slideshow screen
-	slideshows_t := ui.NewPar("Slideshows")
+	slideshows_t := ui.NewPar("          Slideshows          ")
 	slideshows_t.Height = TITLEHEIGHT
 	slideshows_t.Width = 10
 	slideshows_t.Y = 0
-	slideshows_t.X = 35
+	slideshows_t.X = 25
 	slideshows_t.Border = false
 	slideshows := &Screen{Title: *slideshows_t, HasFocus: false}
 	// slideshow pane (left)
