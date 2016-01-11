@@ -39,7 +39,7 @@ and stuff only seems to be permanent in the actual anonymous
 handler func - not any functions which are called from the
 anonymous handler func.
 */
-func (s Screen) ToggleActivePane() {
+func (s Screen) ToggleActivePane(ui.Event) {
 	s.Panes[s.Active].HasFocus = false
 	s.Panes[s.Active].List.BorderLabel = "Inactive" // debug
 	s.Active = s.Active ^ 1
@@ -142,7 +142,7 @@ func CreateScreens() []Screen {
 	// Slideshow screen
 	slideshows_t := ui.NewPar("          Slideshows          ")
 	slideshows_t.Height = TITLEHEIGHT
-	slideshows_t.Width = 10
+	slideshows_t.Width = 30
 	slideshows_t.Y = 0
 	slideshows_t.X = 25
 	slideshows_t.Border = false
