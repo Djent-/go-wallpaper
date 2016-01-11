@@ -4,6 +4,28 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
+type Pane struct {
+	posx int
+	posy int
+	height int
+	width int
+	elements []string
+	currentelement int
+	currentelementfore termbox.Attribute
+	currentelementback termbox.Attribute
+	active bool
+	editbox EditBox
+}
+
+func (p Pane) ToggleActive() {
+	e.active != e.active
+}
+
+func (p Pane) Keystroke (key termbox.Key) {
+	// If the key is not an arrow key, send it to
+	// the editbox if active
+}
+
 type EditBox struct {
 	defaultVal string
 	currentVal string
@@ -26,6 +48,14 @@ func (e EditBox) Keystroke(key termbox.Key) {
 	
 	// Don't allow spaces. Would break compatibility with other
 	// programs.
+	
+	
+}
+
+func draw_all() {
+	// Draw the title
+	
+	// Draw the onscreen panes
 	
 	
 }
