@@ -4,7 +4,8 @@ import (
 	//wdb "github.com/djent-/go-walldatabase"
 	ui "github.com/gizak/termui"
 	"time"
-	"strconv"
+	//"strconv"
+	"fmt"
 )
 
 type Pane struct {
@@ -23,6 +24,7 @@ type Screen struct {
 }
 
 func (s Screen) Draw() {
+	// s.Title.Text = time.Now().String() // debug (works)
 	ui.Render(&s.Title, &s.Panes[0].List, &s.Panes[1].List)
 }
 
@@ -30,7 +32,8 @@ func (s Screen) ToggleActivePane() {
 	s.Panes[s.Active].HasFocus = false
 	s.Panes[s.Active].List.BorderLabel = "Inactive" // debug
 	s.Active = s.Active ^ 1
-	s.Title.Text = strconv.Itoa(s.Active)
+	s.Title.Text = "Test" // debug (does not work)
+	s.Title.Text = fmt.Sprint("%d", s.Active) // debug (does not work)
 	s.Panes[s.Active].HasFocus = true
 	s.Panes[s.Active].List.BorderLabel = "Active" // debug
 }
@@ -82,11 +85,11 @@ func CreateScreens() []Screen {
 	SCREENHEIGHT := 18
 	TITLEHEIGHT := 1
 	// Wallpaper screen
-	wallpapers_t := ui.NewPar("Wallpapers")
+	wallpapers_t := ui.NewPar("          Wallpapers          ")
 	wallpapers_t.Height = TITLEHEIGHT
-	wallpapers_t.Width = 10
+	wallpapers_t.Width = 30
 	wallpapers_t.Y = 0
-	wallpapers_t.X = 35
+	wallpapers_t.X = 25
 	wallpapers_t.Border = false
 	wallpapers := &Screen{Title: *wallpapers_t, HasFocus: true}
 	// filename pane (left)
