@@ -12,7 +12,7 @@ type PaneType int
 const (
 	FILELIST PaneType = 0
 	TAGLIST PaneType = 1
-	DBFILE = "C:\Users\Patrick\Documents\wall.db"
+	DBFILE = "C:\\Users\\Patrick\\Documents\\wall.db"
 )
 
 type Pane struct {
@@ -114,7 +114,7 @@ func HandleKeyboardEvent(e ui.Event) {
 	// Send event to active Screen -> Pane
 }
 
-func (p Pane) PopulateWallpaperFilelistPane(w WallDatabase) error {
+func (p Pane) PopulateWallpaperFilelistPane(w wdb.WallDatabase) error {
 	// Get list of wallpapers from the database
 	wallpapers := w.FetchAllWallpapers()
 	// clear current list from pane
