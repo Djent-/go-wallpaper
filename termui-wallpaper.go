@@ -1,7 +1,7 @@
 package main
 
 import (
-	//wdb "github.com/djent-/go-walldatabase"
+	wdb "github.com/djent-/go-walldatabase"
 	ui "github.com/gizak/termui"
 	"time"
 	"fmt"
@@ -12,6 +12,7 @@ type PaneType int
 const (
 	FILELIST PaneType = 0
 	TAGLIST PaneType = 1
+	DBFILE = "C:\Users\Patrick\Documents\wall.db"
 )
 
 type Pane struct {
@@ -61,6 +62,9 @@ func main() {
 	Screens := CreateScreens()
 	active := 0
 	
+	// Open the wallpaper database
+	WallDB := wdb.OpenDB(DBFILE)
+	
 	ui.Handle("sys/kbd/<escape>", func(ui.Event) {
 		// press esc to quit
 		ui.StopLoop()
@@ -85,8 +89,10 @@ func main() {
 	})
 	ui.Handle("sys/kbd/<tab>", func(ui.Event) {
 		// toggle active screen
+		Screens[active].HasFocus = false
 		// ^ is Go's xor operator. Works only on ints
 		active = active ^ 1
+		Screens[active].HasFocus = true
 	})
 	ui.Handle("sys/kbd", HandleKeyboardEvent)
 	draw := func() {
@@ -106,6 +112,16 @@ func main() {
 
 func HandleKeyboardEvent(e ui.Event) {
 	// Send event to active Screen -> Pane
+}
+
+func (p Pane) PopulateWallpaperFilelistPane(w WallDatabase) error {
+	// Get list of wallpapers from the database
+	wallpapers := w.FetchAllWallpapers()
+	// clear current list from pane
+	p.List.Items = []string{}
+	
+	// FetchAllWallpapers() doesn't return an error yet, but it will
+	return nil
 }
 
 func CreateScreens() []Screen {
