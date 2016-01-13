@@ -19,6 +19,7 @@ type Pane struct {
 	List ui.List // termui struct
 	TotalItems []string // entire list of items
 	CurrentIndex int // index of selected list item
+	ListOffset int
 	HasFocus bool
 	Type PaneType
 }
@@ -64,6 +65,7 @@ func main() {
 	
 	// Open the wallpaper database
 	WallDB := wdb.OpenDB(DBFILE)
+	Screens[0].Panes[0].PopulateWallpaperFilelistPane(WallDB)
 	
 	ui.Handle("sys/kbd/<escape>", func(ui.Event) {
 		// press esc to quit
@@ -118,7 +120,11 @@ func (p Pane) PopulateWallpaperFilelistPane(w wdb.WallDatabase) error {
 	// Get list of wallpapers from the database
 	wallpapers := w.FetchAllWallpapers()
 	// clear current list from pane
-	p.List.Items = []string{}
+	p.TotalItems = []string{}
+	// go through the wallpapers and add the filename to p.TotalItems
+	for _, wallpaper := range(wallpapers) {
+		p.TotalItems = append(p.TotalItems, wallpaper.Filename)
+	}
 	
 	// FetchAllWallpapers() doesn't return an error yet, but it will
 	return nil
