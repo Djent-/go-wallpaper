@@ -34,24 +34,14 @@ type Screen struct {
 	Active int
 }
 
-func (s Screen) Draw() {
+func (s *Screen) Draw() {
 	ui.Render(&s.Title, &s.Panes[0].List, &s.Panes[1].List)
 }
 
-/*
-To be removed with next commit. Making changes to the screens
-and stuff only seems to be permanent in the actual anonymous
-handler func - not any functions which are called from the
-anonymous handler func.
-*/
-func (s Screen) ToggleActivePane() {
+func (s *Screen) ToggleActivePane() {
 	s.Panes[s.Active].HasFocus = false
-	s.Panes[s.Active].List.BorderLabel = "Inactive" // debug
 	s.Active = s.Active ^ 1
-	s.Title.Text = "Test" // debug (does not work)
-	s.Title.Text = fmt.Sprintf("%d", s.Active) // debug (does not work)
 	s.Panes[s.Active].HasFocus = true
-	s.Panes[s.Active].List.BorderLabel = "Active" // debug
 	ui.Render(&s.Title, &s.Panes[0].List, &s.Panes[1].List)
 }
 
@@ -68,6 +58,7 @@ func main() {
 	// Open the wallpaper database
 	WallDB := wdb.OpenDB(DBFILE)
 	Screens[0].Panes[0].PopulateWallpaperFilelistPane(WallDB)
+	Screens[1].Panes[1].PopulateWallpaperFilelistPane(WallDB)
 	//log.Fatal(fmt.Sprintf("%s", strings.Join(Screens[0].Panes[0].List.Items, ","))) // debug
 	
 	ui.Handle("sys/kbd/<escape>", func(ui.Event) {
@@ -76,21 +67,23 @@ func main() {
 	})
 	ui.Handle("sys/kbd/<left>", func(ui.Event) {
 		// switch to left pane
-		Screens[active].Panes[Screens[active].Active].HasFocus = false
-		Screens[active].Active = Screens[active].Active ^ 1
-		Screens[active].Panes[Screens[active].Active].HasFocus = true
+		Screens[active].ToggleActivePane()
 	})
 	ui.Handle("sys/kbd/<right>", func(ui.Event) {
 		// switch to right pane
-		Screens[active].Panes[Screens[active].Active].HasFocus = false
-		Screens[active].Active = Screens[active].Active ^ 1
-		Screens[active].Panes[Screens[active].Active].HasFocus = true
+		Screens[active].ToggleActivePane()
 	})
 	ui.Handle("sys/kbd/<up>", func(ui.Event) {
 		// decrement Pane List selected index
+		if Screens[active].Panes[Screens[active].Active].CurrentIndex == 0 {
+			return
+		}
+		Screens[active].Panes[Screens[active].Active].CurrentIndex -= 1
 	})
 	ui.Handle("sys/kbd/<down>", func(ui.Event) {
 		// increment Pane List selected index
+		// TODO: check for overflow
+		Screens[active].Panes[Screens[active].Active].CurrentIndex += 1
 	})
 	ui.Handle("sys/kbd/<tab>", func(ui.Event) {
 		// toggle active screen
@@ -128,21 +121,25 @@ func (p *Pane) PopulateWallpaperFilelistPane(w wdb.WallDatabase) error {
 	for _, wallpaper := range(wallpapers) {
 		p.TotalItems = append(p.TotalItems, wallpaper.Filename)
 	}
-	// log.Fatal(fmt.Sprintf("%s", strings.Join(p.TotalItems, ","))) debug
-	// add items in TotalItems to Items based on index
+	err := p.UpdateWallpaperFilelistPane(w)
+	// FetchAllWallpapers() doesn't return an error yet, but it will
+	return err
+}
+
+func (p *Pane) UpdateWallpaperFilelistPane(w wdb.WallDatabase) error {
 	for index, filename := range(p.TotalItems) {
 		// break if index is out of view bounds
-		if index > p.ListOffset + 17 {
+		if index > p.ListOffset + 17 { // outside of visible range
 			break
 		}
 		if index < p.ListOffset {
 			continue
 		}
+		if index + p.ListOffset == p.CurrentIndex {
+			filename = fmt.Sprintf("*%s*", filename)
+		}
 		p.List.Items = append(p.List.Items, filename)
 	}
-	// log.Fatal(fmt.Sprintf("%s", strings.Join(p.List.Items, ","))) // debug
-	
-	// FetchAllWallpapers() doesn't return an error yet, but it will
 	return nil
 }
 
