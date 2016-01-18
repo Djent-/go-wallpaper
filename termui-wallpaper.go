@@ -6,7 +6,7 @@ import (
 	"time"
 	"fmt"
 	//"log"
-	"strings"
+	//"strings"
 )
 
 type PaneType int
@@ -183,14 +183,14 @@ func (p *Pane) PopulateWallpaperTaglistPane(w wdb.WallDatabase) error {
 	// get the tags from the selected filename in the opposite pane
 	// I'll hardcode the opposite pane for now
 	wallpaper, err := w.ReadWP(Screens[0].Panes[0].TotalItems[Screens[0].Panes[0].CurrentIndex])
-	panic(fmt.Sprintf("Tags:%s", strings.Join(wallpaper.Tags, ",")))
+	//panic(fmt.Sprintf("Tags:%s", strings.Join(wallpaper.Tags, ",")))
 	if err != nil {
 		return err
 	}
 	// panic(fmt.Sprintf("%s", wallpaper.Filename)) debug
 	// empty TotalItems
 	p.TotalItems = []string{}
-	for _, tag := range(wallpaper.Tags) {
+	for _, tag := range(*wallpaper.Tags) {
 		p.TotalItems = append(p.TotalItems, tag)
 	}
 	// panic(fmt.Sprintf("%s", strings.Join(p.TotalItems, ","))) debug
