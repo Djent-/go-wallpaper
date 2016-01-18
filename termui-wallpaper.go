@@ -6,7 +6,7 @@ import (
 	"time"
 	"fmt"
 	//"log"
-	//"strings"
+	"strings"
 )
 
 type PaneType int
@@ -46,6 +46,9 @@ func (s *Screen) ToggleActivePane() {
 	ui.Render(&s.Title, &s.Panes[0].List, &s.Panes[1].List)
 }
 
+var Screens []Screen
+var active int
+
 func main() {
 	err := ui.Init()
 	if err != nil {
@@ -53,12 +56,19 @@ func main() {
 	}
 	defer ui.Close()
 	
-	Screens := CreateScreens()
-	active := 0
+	Screens = CreateScreens()
+	active = 0
 	
 	// Open the wallpaper database
 	WallDB := wdb.OpenDB(DBFILE)
-	Screens[0].Panes[0].PopulateWallpaperFilelistPane(WallDB)
+	err = Screens[0].Panes[0].PopulateWallpaperFilelistPane(WallDB)
+	if err != nil {
+		panic(err)
+	}
+	err = Screens[0].Panes[1].PopulateWallpaperTaglistPane(WallDB)
+	if err != nil {
+		panic(err)
+	}
 	
 	ui.Handle("sys/kbd/<escape>", func(ui.Event) {
 		// press esc to quit
@@ -94,6 +104,14 @@ func main() {
 	ui.Handle("sys/kbd", HandleKeyboardEvent)
 	ui.Handle("termui-wallpaper/index/update", func(ui.Event) {
 		// handle updates to CurrentIndex
+		if Screens[active].Panes[Screens[active].Active].Type == FILELIST {
+			// update file list
+			Screens[active].Panes[Screens[active].Active].UpdatePaneList(WallDB)
+			// update tag pane as well
+			// tag pane would be the xor of 1 and Active
+			// or just hardcode it ffs
+			Screens[active].Panes[1^Screens[active].Active].PopulateWallpaperTaglistPane(WallDB)
+		}
 	})
 	
 	// this is https://github.com/gizak/termui/issues/58
@@ -101,7 +119,7 @@ func main() {
 	ui.Merge("timer/update", ui.NewTimerCh(tick))
 	ui.Handle("/timer/"+tick.String(), func(e ui.Event) {
 		// update pane lists
-		Screens[0].Panes[0].UpdateWallpaperFilelistPane(WallDB)
+		Screens[0].Panes[0].UpdatePaneList(WallDB)
 		// call draw
 		Screens[active].Draw()
 	})
@@ -114,22 +132,25 @@ func HandleKeyboardEvent(e ui.Event) {
 
 func (p *Pane) PopulateWallpaperFilelistPane(w wdb.WallDatabase) error {
 	// Get list of wallpapers from the database
-	wallpapers := w.FetchAllWallpapers()
+	wallpapers, err := w.FetchAllWallpapers()
+	if err != nil {
+		return err
+	}
 	// clear current list from pane
 	p.TotalItems = []string{}
 	// go through the wallpapers and add the filename to p.TotalItems
 	for _, wallpaper := range(wallpapers) {
 		p.TotalItems = append(p.TotalItems, wallpaper.Filename)
 	}
-	err := p.UpdateWallpaperFilelistPane(w)
+	p.UpdatePaneList(w)
 	// FetchAllWallpapers() doesn't return an error yet, but it will
-	return err
+	return nil
 }
 
-func (p *Pane) UpdateWallpaperFilelistPane(w wdb.WallDatabase) error {
+func (p *Pane) UpdatePaneList(w wdb.WallDatabase) {
 	// clear p.List.Items
 	p.List.Items = []string{}
-	for index, filename := range(p.TotalItems) {
+	for index, item := range(p.TotalItems) {
 		// break if index is out of view bounds
 		if index > p.ListOffset + 17 { // outside of visible range
 			break
@@ -137,25 +158,43 @@ func (p *Pane) UpdateWallpaperFilelistPane(w wdb.WallDatabase) error {
 		if index < p.ListOffset {
 			continue
 		}
-		var filename_f string
-		var filename_f1 string
-		var filename_f2 string
-		if len(filename) > 43 {
-			for ind, char := range(filename) {
+		var item_f string
+		var item_f1 string
+		var item_f2 string
+		if len(item) > 43 {
+			for ind, char := range(item) {
 				if (ind < 20) { 
-					filename_f1 = fmt.Sprintf("%s%c", filename_f1, char)
-				} else if (ind > len(filename) - 22) {
-					filename_f2 = fmt.Sprintf("%s%c", filename_f2, char)
+					item_f1 = fmt.Sprintf("%s%c", item_f1, char)
+				} else if (ind > len(item) - 22) {
+					item_f2 = fmt.Sprintf("%s%c", item_f2, char)
 				}
 			}
 			// add ellipsis to center of truncated string
-			filename_f = fmt.Sprintf("%s…%s", filename_f1, filename_f2)
+			item_f = fmt.Sprintf("%s…%s", item_f1, item_f2)
 		}
 		if index + p.ListOffset == p.CurrentIndex {
-			filename_f = fmt.Sprintf("[%s](fg-white,bg-green)", filename_f)
+			item_f = fmt.Sprintf("[%s](fg-white,bg-green)", item_f)
 		}
-		p.List.Items = append(p.List.Items, filename_f)
+		p.List.Items = append(p.List.Items, item_f)
 	}
+}
+
+func (p *Pane) PopulateWallpaperTaglistPane(w wdb.WallDatabase) error {
+	// get the tags from the selected filename in the opposite pane
+	// I'll hardcode the opposite pane for now
+	wallpaper, err := w.ReadWP(Screens[0].Panes[0].TotalItems[Screens[0].Panes[0].CurrentIndex])
+	panic(fmt.Sprintf("Tags:%s", strings.Join(wallpaper.Tags, ",")))
+	if err != nil {
+		return err
+	}
+	// panic(fmt.Sprintf("%s", wallpaper.Filename)) debug
+	// empty TotalItems
+	p.TotalItems = []string{}
+	for _, tag := range(wallpaper.Tags) {
+		p.TotalItems = append(p.TotalItems, tag)
+	}
+	// panic(fmt.Sprintf("%s", strings.Join(p.TotalItems, ","))) debug
+	p.UpdatePaneList(w)
 	return nil
 }
 
