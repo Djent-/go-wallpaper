@@ -93,17 +93,16 @@ func main() {
 		Screens[active].HasFocus = true
 	})
 	ui.Handle("sys/kbd", HandleKeyboardEvent)
-	draw := func() {
-		Screens[active].Draw()
-	}
 	
 	// this is https://github.com/gizak/termui/issues/58
 	tick := time.Second/24
 	ui.Merge("timer/update", ui.NewTimerCh(tick))
 	ui.Handle("/timer/"+tick.String(), func(e ui.Event) {
-		// update pane lists (waiting on go-walldatabase)
+		// update pane lists
+		Screens[0].Panes[0].UpdateWallpaperFilelistPane(WallDB)
+		Screens[1].Panes[1].UpdateWallpaperFilelistPane(WallDB)
 		// call draw
-		draw()
+		Screens[active].Draw()
 	})
 	ui.Loop()
 }
@@ -127,6 +126,8 @@ func (p *Pane) PopulateWallpaperFilelistPane(w wdb.WallDatabase) error {
 }
 
 func (p *Pane) UpdateWallpaperFilelistPane(w wdb.WallDatabase) error {
+	// clear p.List.Items
+	p.List.Items = []string{}
 	for index, filename := range(p.TotalItems) {
 		// break if index is out of view bounds
 		if index > p.ListOffset + 17 { // outside of visible range
