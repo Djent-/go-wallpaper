@@ -5,6 +5,8 @@ import (
 	ui "github.com/gizak/termui"
 	"time"
 	"fmt"
+	//"log"
+	//"strings"
 )
 
 type PaneType int
@@ -42,7 +44,7 @@ and stuff only seems to be permanent in the actual anonymous
 handler func - not any functions which are called from the
 anonymous handler func.
 */
-func (s Screen) ToggleActivePane(ui.Event) {
+func (s Screen) ToggleActivePane() {
 	s.Panes[s.Active].HasFocus = false
 	s.Panes[s.Active].List.BorderLabel = "Inactive" // debug
 	s.Active = s.Active ^ 1
@@ -66,6 +68,7 @@ func main() {
 	// Open the wallpaper database
 	WallDB := wdb.OpenDB(DBFILE)
 	Screens[0].Panes[0].PopulateWallpaperFilelistPane(WallDB)
+	//log.Fatal(fmt.Sprintf("%s", strings.Join(Screens[0].Panes[0].List.Items, ","))) // debug
 	
 	ui.Handle("sys/kbd/<escape>", func(ui.Event) {
 		// press esc to quit
@@ -116,7 +119,7 @@ func HandleKeyboardEvent(e ui.Event) {
 	// Send event to active Screen -> Pane
 }
 
-func (p Pane) PopulateWallpaperFilelistPane(w wdb.WallDatabase) error {
+func (p *Pane) PopulateWallpaperFilelistPane(w wdb.WallDatabase) error {
 	// Get list of wallpapers from the database
 	wallpapers := w.FetchAllWallpapers()
 	// clear current list from pane
@@ -125,6 +128,19 @@ func (p Pane) PopulateWallpaperFilelistPane(w wdb.WallDatabase) error {
 	for _, wallpaper := range(wallpapers) {
 		p.TotalItems = append(p.TotalItems, wallpaper.Filename)
 	}
+	// log.Fatal(fmt.Sprintf("%s", strings.Join(p.TotalItems, ","))) debug
+	// add items in TotalItems to Items based on index
+	for index, filename := range(p.TotalItems) {
+		// break if index is out of view bounds
+		if index > p.ListOffset + 17 {
+			break
+		}
+		if index < p.ListOffset {
+			continue
+		}
+		p.List.Items = append(p.List.Items, filename)
+	}
+	// log.Fatal(fmt.Sprintf("%s", strings.Join(p.List.Items, ","))) // debug
 	
 	// FetchAllWallpapers() doesn't return an error yet, but it will
 	return nil
@@ -149,9 +165,10 @@ func CreateScreens() []Screen {
 	filename_l.X = 0
 	filename_l.Y = 1
 	filenames := &Pane{List: *filename_l, 
-		CurrentIndex: 1, 
+		CurrentIndex: 0, 
 		HasFocus: true,
-		Type: FILELIST}
+		Type: FILELIST,
+		ListOffset: 0}
 	// tag pane (right)
 	tag_l := ui.NewList()
 	tag_l.Height = SCREENHEIGHT - TITLEHEIGHT
@@ -160,9 +177,10 @@ func CreateScreens() []Screen {
 	tag_l.X = 44
 	tag_l.Y = 1
 	tags := &Pane{List: *tag_l, 
-		CurrentIndex: 1, 
+		CurrentIndex: 0, 
 		HasFocus: false,
-		Type: TAGLIST}
+		Type: TAGLIST,
+		ListOffset: 0}
 	wallpapers.Panes = []Pane{*filenames, *tags}
 	
 	// Slideshow screen
@@ -181,9 +199,10 @@ func CreateScreens() []Screen {
 	slideshow_l.X = 0
 	slideshow_l.BorderLabel = "Slideshows"
 	slideshow_p := &Pane{List: *slideshow_l, 
-		CurrentIndex: 1, 
+		CurrentIndex: 0, 
 		HasFocus: false,
-		Type: FILELIST}
+		Type: FILELIST,
+		ListOffset: 0}
 	// wallpaper pane (right)
 	wallpaper_l := ui.NewList()
 	wallpaper_l.Height = SCREENHEIGHT - TITLEHEIGHT
@@ -192,9 +211,10 @@ func CreateScreens() []Screen {
 	wallpaper_l.X = 35
 	wallpaper_l.Y = 1
 	wallpaper_p := &Pane{List: *wallpaper_l, 
-		CurrentIndex: 1, 
+		CurrentIndex: 0, 
 		HasFocus: false,
-		Type: FILELIST}
+		Type: FILELIST,
+		ListOffset: 0}
 	slideshows.Panes = []Pane{*slideshow_p, *wallpaper_p}
 	
 	return []Screen{*wallpapers, *slideshows}
