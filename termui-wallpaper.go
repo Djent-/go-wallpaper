@@ -137,7 +137,7 @@ func (p *Pane) UpdateWallpaperFilelistPane(w wdb.WallDatabase) error {
 			continue
 		}
 		if index + p.ListOffset == p.CurrentIndex {
-			filename = fmt.Sprintf("*%s*", filename)
+			filename = fmt.Sprintf("[%s](fg-white,bg-green)", filename)
 		}
 		p.List.Items = append(p.List.Items, filename)
 	}
