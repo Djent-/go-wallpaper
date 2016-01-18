@@ -58,8 +58,6 @@ func main() {
 	// Open the wallpaper database
 	WallDB := wdb.OpenDB(DBFILE)
 	Screens[0].Panes[0].PopulateWallpaperFilelistPane(WallDB)
-	Screens[1].Panes[1].PopulateWallpaperFilelistPane(WallDB)
-	//log.Fatal(fmt.Sprintf("%s", strings.Join(Screens[0].Panes[0].List.Items, ","))) // debug
 	
 	ui.Handle("sys/kbd/<escape>", func(ui.Event) {
 		// press esc to quit
@@ -93,6 +91,9 @@ func main() {
 		Screens[active].HasFocus = true
 	})
 	ui.Handle("sys/kbd", HandleKeyboardEvent)
+	ui.Handle("termui-wallpaper/index/update", func(ui.Event) {
+		// handle updates to CurrentIndex
+	})
 	
 	// this is https://github.com/gizak/termui/issues/58
 	tick := time.Second/24
@@ -100,7 +101,6 @@ func main() {
 	ui.Handle("/timer/"+tick.String(), func(e ui.Event) {
 		// update pane lists
 		Screens[0].Panes[0].UpdateWallpaperFilelistPane(WallDB)
-		Screens[1].Panes[1].UpdateWallpaperFilelistPane(WallDB)
 		// call draw
 		Screens[active].Draw()
 	})
