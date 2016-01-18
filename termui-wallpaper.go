@@ -32,6 +32,7 @@ type Screen struct {
 	StatusBar ui.Par
 	HasFocus bool
 	Active int
+	KbdHandler func(ui.Event)
 }
 
 func (s *Screen) Draw() {
@@ -136,10 +137,24 @@ func (p *Pane) UpdateWallpaperFilelistPane(w wdb.WallDatabase) error {
 		if index < p.ListOffset {
 			continue
 		}
-		if index + p.ListOffset == p.CurrentIndex {
-			filename = fmt.Sprintf("[%s](fg-white,bg-green)", filename)
+		var filename_f string
+		var filename_f1 string
+		var filename_f2 string
+		if len(filename) > 43 {
+			for ind, char := range(filename) {
+				if (ind < 20) { 
+					filename_f1 = fmt.Sprintf("%s%c", filename_f1, char)
+				} else if (ind > len(filename) - 22) {
+					filename_f2 = fmt.Sprintf("%s%c", filename_f2, char)
+				}
+			}
+			// add ellipsis to center of truncated string
+			filename_f = fmt.Sprintf("%s…%s", filename_f1, filename_f2)
 		}
-		p.List.Items = append(p.List.Items, filename)
+		if index + p.ListOffset == p.CurrentIndex {
+			filename_f = fmt.Sprintf("[%s](fg-white,bg-green)", filename_f)
+		}
+		p.List.Items = append(p.List.Items, filename_f)
 	}
 	return nil
 }
